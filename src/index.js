@@ -1,12 +1,12 @@
 import './style.css';
-// Инициализация состояния
+
 let state = {
     todo: [],
     'in-progress': [],
     done: []
   };
   
-  // Загрузка из LocalStorage
+
   const savedState = localStorage.getItem('trello-state');
   if (savedState) {
     state = JSON.parse(savedState);
@@ -14,14 +14,14 @@ let state = {
   
   const board = document.getElementById('board');
   
-  // Переменные для Drag and Drop
+
   let draggedEl = null;
   let placeholderEl = null;
   let shiftX = 0;
   let shiftY = 0;
   let originalColumnId = '';
   
-  // --- РЕНДЕРИНГ ИЗ СОСТОЯНИЯ ---
+
   function saveToStorage() {
     localStorage.setItem('trello-state', JSON.stringify(state));
   }
@@ -38,12 +38,12 @@ let state = {
         card.textContent = cardText;
         card.dataset.index = index;
   
-        // Кнопка удаления карточки
+
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'card-delete';
-        deleteBtn.innerHTML = '&#xE951;'; // Код крестика по ТЗ (или можно просто '✕')
+        deleteBtn.innerHTML = '&#xE951;';
         deleteBtn.addEventListener('click', (e) => {
-          e.stopPropagation(); // Исключаем срабатывание D&D при клике на крестик
+          e.stopPropagation();
           deleteCard(columnId, index);
         });
   
@@ -59,7 +59,7 @@ let state = {
     render();
   }
   
-  // --- ИНТЕРФЕЙС ДОБАВЛЕНИЯ КАРТОЧЕК ---
+
   board.addEventListener('click', (e) => {
     if (e.target.classList.contains('add-card-btn')) {
       const wrapper = e.target.closest('.add-card-wrapper');
@@ -88,7 +88,7 @@ let state = {
         render();
       }
       
-      // Сбрасываем форму
+
       textarea.value = '';
       wrapper.querySelector('.add-card-form').classList.add('hidden');
       wrapper.querySelector('.add-card-btn').classList.remove('hidden');
@@ -96,39 +96,39 @@ let state = {
   });
   
   
-  // --- ЛОГИКА DRAG AND DROP ---
+
   
   board.addEventListener('mousedown', (e) => {
     const cardEl = e.target.closest('.card');
-    // Игнорируем нажатие, если кликнули по кнопке удаления
+
     if (!cardEl || e.target.classList.contains('card-delete')) return;
   
     draggedEl = cardEl;
     originalColumnId = draggedEl.closest('.column').dataset.id;
   
-    // Расчет смещения курсора относительно левого верхнего угла карточки
+
     const rect = draggedEl.getBoundingClientRect();
     shiftX = e.clientX - rect.left;
     shiftY = e.clientY - rect.top;
   
-    // Создаем плейсхолдер, который займет место карточки
+
     placeholderEl = document.createElement('div');
     placeholderEl.className = 'card-placeholder';
     placeholderEl.style.height = `${rect.height}px`;
   
-    // Стилизуем перетаскиваемый элемент (превращаем в "фантом")
+
     draggedEl.style.width = `${rect.width}px`;
     draggedEl.style.height = `${rect.height}px`;
     
-    // Вставляем плейсхолдер на место карточки, а саму карточку вырываем из потока
+
     draggedEl.parentNode.insertBefore(placeholderEl, draggedEl);
     draggedEl.classList.add('dragged');
     
-    // Двигаем карточку на стартовую позицию
+
     moveAt(e.clientX, e.clientY);
     document.body.classList.add('dragging');
   
-    // Вешаем слушатели на документ для плавного отслеживания движения
+
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   });
@@ -142,20 +142,20 @@ let state = {
   function onMouseMove(e) {
     moveAt(e.clientX, e.clientY);
   
-    // Скрываем на мгновение карточку, чтобы метод elementFromPoint заглянул "под" нее
+
     draggedEl.style.display = 'none';
     const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
     draggedEl.style.display = 'block';
   
     if (!elemBelow) return;
   
-    // Ищем контейнер колонки или карточку под курсором
+
     const containerBelow = elemBelow.closest('.cards-container');
     const cardBelow = elemBelow.closest('.card:not(.dragged)');
   
     if (containerBelow) {
       if (cardBelow) {
-        // Логика "до" или "после" элемента в зависимости от Y-координаты курсора
+
         const rect = cardBelow.getBoundingClientRect();
         const midpoint = rect.top + rect.height / 2;
   
@@ -165,7 +165,7 @@ let state = {
           containerBelow.insertBefore(placeholderEl, cardBelow.nextSibling);
         }
       } else {
-        // Если под курсором нет карточки — добавляем плейсхолдер в конец контейнера
+
         containerBelow.appendChild(placeholderEl);
       }
     }
@@ -178,36 +178,35 @@ let state = {
     document.removeEventListener('mouseup', onMouseUp);
     document.body.classList.remove('dragging');
   
-    // Определяем, куда в итоге попал placeholder
+
     const finalContainer = placeholderEl.parentNode;
     
     if (finalContainer && finalContainer.classList.contains('cards-container')) {
       const targetColumnId = finalContainer.closest('.column').dataset.id;
       
-      // Находим текст перетаскиваемой карточки из старого состояния
+
       const cardText = state[originalColumnId][parseInt(draggedEl.dataset.index)];
   
-      // Удаляем карточку из старого массива данных
+
       state[originalColumnId].splice(parseInt(draggedEl.dataset.index), 1);
   
-      // Вычисляем новый индекс на основе позиции placeholder'а в DOM
+
       const childrenArray = Array.from(finalContainer.children);
       const newIndex = childrenArray.indexOf(placeholderEl);
   
-      // Вставляем в новый массив данных
+
       state[targetColumnId].splice(newIndex, 0, cardText);
     }
   
-    // Очищаем временные элементы и стили
+
     placeholderEl.remove();
     draggedEl.classList.remove('dragged');
     draggedEl = null;
     placeholderEl = null;
   
-    // Сохраняем обновленное состояние и полностью перерисовываем интерфейс
+
     saveToStorage();
     render();
   }
   
-  // Первый запуск отрисовки приложения при загрузке страницы
   render();

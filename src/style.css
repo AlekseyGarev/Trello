@@ -9,10 +9,10 @@
     padding: 20px;
     height: 100vh;
     overflow: hidden;
-    user-select: none; /* Предотвращает выделение текста при перетаскивании */
+    user-select: none;
   }
   
-  /* Изменение курсора для всего документа при перетаскивании */
+
   body.dragging {
     cursor: grabbing !important;
   }
@@ -47,10 +47,10 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-height: 10px; /* Чтобы можно было закинуть в пустую колонку */
+    min-height: 10px;
   }
   
-  /* Карточки */
+
   .card {
     background-color: #fff;
     border-radius: 3px;
@@ -67,7 +67,7 @@
     background-color: #f4f5f7;
   }
   
-  /* Кнопка удаления внутри карточки */
+
   .card-delete {
     position: absolute;
     right: 4px;
@@ -89,17 +89,17 @@
     color: #172b4d;
   }
   
-  /* Показываем крестик при ховере на карточку */
+
   .card:hover .card-delete {
     display: flex;
   }
   
-  /* Элемент-фантом (который тащим) */
+
   .card.dragged {
     position: fixed;
-    pointer-events: none; /* Важно! Чтобы элемент не перекрывал под собой другие элементы при mousemove */
+    pointer-events: none;
     z-index: 1000;
-    transform: rotate(0deg); /* По условию поворот делать не нужно */
+    transform: rotate(0deg);
     box-shadow: 0 12px 24px -6px rgba(9,30,66,.25), 0 0 0 1px rgba(9,30,66,.08);
     cursor: grabbing;
   }
